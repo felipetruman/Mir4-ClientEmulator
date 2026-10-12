@@ -4,3 +4,5 @@ packages/
 *.user
 *.suo
 .tools/
+native/current_parameters.h
+native/current-profile.json

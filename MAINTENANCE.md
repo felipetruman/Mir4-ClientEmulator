@@ -1,19 +1,19 @@
 # Fork maintenance
 
-First milestone: build the existing .NET Framework 4.7.2 application and correct TCP framing. Authentication and outbound cryptography against the current live game remain unverified.
-
 ## Build and test
 
-On Windows with the .NET 10 SDK and .NET Framework 4.7.2 runtime:
+On Windows with the .NET 10 SDK and .NET Framework 4.7.2 runtime, run:
 
 ```powershell
-./build.ps1
+./build.ps1 -NativeCompiler C:/path/to/zig.exe
 ```
 
-The script downloads NuGet 6.14.0 locally, restores packages, builds the WinForms application, and runs offline transport regression tests. Reference assemblies are restored as a development dependency; the machine does not need a separately installed developer pack. `System.Resources.Extensions` enables resource generation using SDK MSBuild. Application output: `bin/Debug/Mir4NetworkBot.exe`.
+The script restores NuGet packages, builds the WinForms application, builds `Mir4Encryption.dll`, and runs the transport and cipher regression suites. The native build requires `native/current-profile.json` and its generated `native/current_parameters.h`. These are intentionally excluded from Git because they are derived from the installed game client. Use `native/generate-parameters.py <verified-profile.json> <Mir4G.exe>` to generate them; the script checks the executable SHA-256 against the profile before writing build inputs. Do not claim a runnable native build from `-ManagedOnly`; that option skips DLL integration tests.
 
-The test harness compiles the actual `Network/Session.cs` with minimal context/packet adapters. Five checks cover header-only heartbeat, fragmentation, concatenation and receive-queue integrity, 32-bit lengths, and invalid lengths. Four failed against the original implementation and all five pass after correction. Tests do not load the encryption DLL or contact the game. Send-count fixes are code-reviewed but forced partial-send behavior has not yet been covered by this harness.
+## Current-client status
 
-Inbound frames are limited to 1 MiB as a defensive allocation bound. Revisit this bound if a validated current capture contains larger frames. The existing extra 15-byte handler buffer is retained to avoid changing handler interfaces in this milestone.
+The current profile was verified against installed MIR4 client version 1.133.1. `GetServerInfo`, `GetPatchInfo`, and `GetDataInfo` were exercised against the public service metadata for that version. This confirms version discovery and public patch/data metadata access, not account authentication or acceptance of encrypted game packets by a live session.
 
-Next milestone: validate current version discovery, login responses and native encryption dependency; do not infer live compatibility from successful compilation.
+The packet framing and timestamp approach reuse the user-provided [Mir4-PacketEncryption](https://github.com/AlSch092/Mir4-PacketEncryption) reference. Its README describes AES-256-CBC, while the installed 1.133.1 client routine was independently validated as a modified 10-round AES-like transform using a 128-bit derived key. Do not substitute the older repository's hard-coded table/key or shellcode patching for the generated current-client profile. The emulator's existing login and session architecture remains the foundation.
+
+The transport harness compiles the actual `Network/Session.cs` with minimal adapters. The cipher harness checks key expansion, block encryption, frame construction, the native DLL, the application's `Encryption.Encode` import, and invalid-input guards. Full current-client authenticated login and live encrypted-packet acceptance remain unverified.

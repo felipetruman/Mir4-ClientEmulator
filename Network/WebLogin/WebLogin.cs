@@ -1,7 +1,8 @@
-//By AlSch092 @ Github
+﻿//By AlSch092 @ Github
 ﻿using Mir4ClientEmulator.Game;
 using Mir4ClientEmulator.Network.WebLogin.JSON;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -17,7 +18,7 @@ namespace Mir4ClientEmulator.Network
         private static string LanguageUrl = "https://api.mir4global.com/auth/language";
         private static string PrivacyUrl = "https://api.mir4global.com/auth/privacy?playerkey=";
 
-        private const string current_version = "1.67.1.406743";
+        public string ClientVersion { get; set; }
 
         public string PatchRootUrl { get; set; }
         public string PatchSubpath{ get; set; }
@@ -75,7 +76,7 @@ namespace Mir4ClientEmulator.Network
         {
             if (GetServerInfo())
             {
-                if (CheckVersion(this.serverInfo.BaseSetting._1671.WemadeServiceUrl, IpAddress, UltimateLogin.MacAddress))
+                if (CheckVersion(this.WemadeServiceUrl, IpAddress, UltimateLogin.MacAddress))
                 {
                     if (!GetPatchInfo())
                     {
@@ -147,13 +148,28 @@ namespace Mir4ClientEmulator.Network
 
                 //Console.WriteLine(versionInfo.BaseSetting._1571.PatchRootUrl);
 
-                if(versionInfo.BaseSetting._1671.PatchRootUrl.Length > 0) // _1571 = current version
+                // Reuse the existing settings schema, selecting the verified profile version.
+                string version = ClientVersion;
+                if (string.IsNullOrWhiteSpace(version))
+                {
+                    string directory = Path.GetDirectoryName(typeof(UltimateLogin).Assembly.Location);
+                    string profilePath = Path.Combine(directory, "current-profile.json");
+                    if (!File.Exists(profilePath))
+                        throw new InvalidOperationException("Set ClientVersion or build with a verified native/current-profile.json.");
+                    version = (string)JObject.Parse(File.ReadAllText(profilePath))["version"];
+                }
+                var selected = JObject.Parse(_responseData)["BaseSetting"]?[version];
+                if (selected == null) throw new InvalidOperationException("Client version is absent from server metadata: " + version);
+                var settings = (JObject)selected;
+                string patchRootUrl = (string)settings["PatchRootUrl"];
+                if(!string.IsNullOrWhiteSpace(patchRootUrl))
                 {
                     this.serverInfo = versionInfo;
-                    this.PatchRootUrl = versionInfo.BaseSetting._1671.PatchRootUrl;
-                    this.PatchSubpath = versionInfo.BaseSetting._1671.PatchSubPath;
-                    this.WemadeServiceUrl = versionInfo.BaseSetting._1671.WemadeServiceUrl;
-                    this.WemadeServiceVersion = versionInfo.BaseSetting._1671.WemadeServiceVersion;
+                    this.ClientVersion = version;
+                    this.PatchRootUrl = patchRootUrl;
+                    this.PatchSubpath = (string)settings["PatchSubPath"];
+                    this.WemadeServiceUrl = (string)settings["WemadeServiceUrl"];
+                    this.WemadeServiceVersion = (string)settings["WemadeServiceVersion"];
                 }
 
                 return true;
@@ -208,7 +224,7 @@ namespace Mir4ClientEmulator.Network
         }
         public bool GetPatchInfo() //needs updating on new wemadeservice versions
         {
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(serverInfo.BaseSetting._1571.PatchRootUrl + serverInfo.BaseSetting._1571.PatchSubPath + "WindowsNoEditor/PatchInfo.json");
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(PatchRootUrl + PatchSubpath + "WindowsNoEditor/PatchInfo.json");
             request.Method = "GET";
 
             String _responseData = String.Empty;
@@ -238,7 +254,7 @@ namespace Mir4ClientEmulator.Network
 
         public bool GetDataInfo()
         {
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(serverInfo.BaseSetting._1351.PatchRootUrl + serverInfo.BaseSetting._1351.PatchSubPath + "Data/datainfo.json");
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(PatchRootUrl + PatchSubpath + "Data/datainfo.json");
             request.Method = "GET";
 
             String _responseData = String.Empty;

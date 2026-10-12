@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Network/Packets/Encryption/CurrentPacketCipher.cs" Link="CurrentPacketCipher.cs" />
+    <Compile Include="../../Network/Packets/Encryption/Encryption.cs" Link="Encryption.cs" />
+    <None Update="vectors.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../bin/Debug/Mir4Encryption.dll" Link="Mir4Encryption.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../bin/Debug/Mir4Encryption.dll')" />
+    <None Include="../../native/current-profile.json" Link="current-profile.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../native/current-profile.json')" />
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-//By AlSch092 @ Github
+﻿//By AlSch092 @ Github
 ﻿
 using Mir4ClientEmulator.Context;
 using Mir4ClientEmulator.Network.Packets;
@@ -125,9 +125,15 @@ namespace Mir4ClientEmulator.Network
         }
         private void ManipulateBuffer()
         {
-            while (m_cursor > HeaderLen && m_connected)
+            while (m_cursor >= HeaderLen && m_connected)
             {
-                int packetSize = m_packetBuffer[0] | m_packetBuffer[1] << 8; // | m_packetBuffer[2] << 16 | m_packetBuffer[3] << 24;
+                int packetSize = BitConverter.ToInt32(m_packetBuffer, 0);
+                // Reject malformed lengths before allocating or copying a frame.
+                if (packetSize < HeaderLen || packetSize > 1024 * 1024)
+                {
+                    Dispose();
+                    return;
+                }
 
                 if (m_cursor < packetSize)
                 {
@@ -149,7 +155,7 @@ namespace Mir4ClientEmulator.Network
                     if(m_GameContext.Client.RecvPacketQueue != null)
                     {
                         byte[] sub_buff = new byte[packetSize - 5];
-                        Buffer.BlockCopy(m_packetBuffer, 5, sub_buff, 0, packetSize - 5);
+                        Buffer.BlockCopy(buffer, 5, sub_buff, 0, packetSize - 5);
                         m_GameContext.Client.RecvPacketQueue.Enqueue(new Reader(sub_buff, packetSize - 5));
                     }
                 }
@@ -187,7 +193,7 @@ namespace Mir4ClientEmulator.Network
                 {
                     int offset = 0;
 
-                    while (offset < data.Length)
+                    while (offset < dataWithHeader.Length)
                     {
                         SocketError errorCode = SocketError.Success;
 
@@ -242,13 +248,18 @@ namespace Mir4ClientEmulator.Network
 
                     while (offset < EncryptedLength)
                     {
+                        if (m_socket == null || !m_socket.Connected)
+                        {
+                            Dispose();
+                            return false;
+                        }
                         SocketError errorCode = SocketError.Success;
 
                         if (m_socket != null)
                         {
                             if (m_socket.Connected)
                             {
-                                int sent = m_socket.Send(encrypted_packet, offset, EncryptedLength, SocketFlags.None, out errorCode);
+                                int sent = m_socket.Send(encrypted_packet, offset, EncryptedLength - offset, SocketFlags.None, out errorCode);
 
                                 if (sent == 0 || errorCode != SocketError.Success)
                                 {
@@ -351,13 +362,18 @@ namespace Mir4ClientEmulator.Network
 
                     while (offset < EncryptedLength)
                     {
+                        if (m_socket == null || !m_socket.Connected)
+                        {
+                            Dispose();
+                            return false;
+                        }
                         SocketError errorCode = SocketError.Success;
 
                         if (m_socket != null)
                         {
                             if (m_socket.Connected)
                             {
-                                int sent = m_socket.Send(outData, offset, EncryptedLength, SocketFlags.None, out errorCode);
+                                int sent = m_socket.Send(outData, offset, EncryptedLength - offset, SocketFlags.None, out errorCode);
                                 //Console.WriteLine("Sending {0} bytes.., sent {1} bytes", EncryptedLength, sent);
 
                                 if (sent == 0 || errorCode != SocketError.Success)
@@ -409,13 +425,18 @@ namespace Mir4ClientEmulator.Network
 
                     while (offset < EncryptedLength)
                     {
+                        if (m_socket == null || !m_socket.Connected)
+                        {
+                            Dispose();
+                            return false;
+                        }
                         SocketError errorCode = SocketError.Success;
 
                         if(m_socket != null)
                         {
                             if (m_socket.Connected)
                             {
-                                int sent = m_socket.Send(outData, offset, EncryptedLength, SocketFlags.None, out errorCode);
+                                int sent = m_socket.Send(outData, offset, EncryptedLength - offset, SocketFlags.None, out errorCode);
                                 //Console.WriteLine("Sending {0} bytes.., sent {1} bytes", EncryptedLength, sent);
 
                                 if (sent == 0 || errorCode != SocketError.Success)
@@ -453,8 +474,12 @@ namespace Mir4ClientEmulator.Network
 
                 try
                 {
-                    m_socket.Shutdown(SocketShutdown.Both);
-                    m_socket.Close();
+                    if (m_socket != null)
+                    {
+                        try { m_socket.Shutdown(SocketShutdown.Both); }
+                        catch (SocketException) { /* Already disconnected or never connected. */ }
+                        finally { m_socket.Close(); }
+                    }
                 }
                 finally
                 {

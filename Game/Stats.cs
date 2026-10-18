@@ -17,10 +17,17 @@ namespace Mir4.Game
         public uint MaxMana { get; set; }
         public uint CurrentMana { get; set; }
 
+        public int CombatPoint { get; private set; }
+
         public uint Experience { get; set; }
 
         public uint Level { get; set; }
 
         public _vector3 Position { get; set; }
+
+        public void ApplyChangeStat(GAME_CLIENT_CHANGE_STAT update)
+        {
+            CombatPoint = update.combatpoint;
+        }
     }
 }

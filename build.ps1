@@ -20,6 +20,8 @@ if (-not $ManagedOnly) {
 }
 & dotnet run --project (Join-Path $projectRoot 'tests/TransportRegression') --verbosity quiet
 if ($LASTEXITCODE -ne 0) { throw 'Transport regression tests failed.' }
+& dotnet run --project (Join-Path $projectRoot 'tests/CaptureRegression') --verbosity quiet
+if ($LASTEXITCODE -ne 0) { throw 'Capture regression tests failed.' }
 if ($ManagedOnly) {
     & dotnet run --project (Join-Path $projectRoot 'tests/CipherRegression') --verbosity quiet -- --managed-only
 } else {

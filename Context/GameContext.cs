@@ -474,6 +474,10 @@ namespace Mir4ClientEmulator.Context
                     GameServerHandler.GAME_CLIENT_CHANGE_INFO(this, packet_data); 
                     break;
 
+                case Opcodes.GAME_CLIENT_CHANGE_STAT:
+                    GameServerHandler.GAME_CLIENT_CHANGE_STAT(this, packet_data);
+                    break;
+
                 case Opcodes.GAME_CLIENT_MAIL_LIST_DATA:
                     GameServerHandler.GAME_CLIENT_MAIL_LIST_DATA(this, packet_data);
                     break;

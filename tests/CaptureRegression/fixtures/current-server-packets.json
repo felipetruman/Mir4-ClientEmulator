@@ -1,0 +1,25 @@
+{
+  "source": "Current MIR4 server-to-client TCP stream captured 2026-10-18; identifiers and free-text fields redacted.",
+  "samples": [
+    {
+      "opcode": 17508,
+      "name": "GAME_CLIENT_CHANGE_INFO",
+      "payload_hex": "08959aef3a108dfa0318c33c20642801300338cc970140f0fd0348c33c"
+    },
+    {
+      "opcode": 17505,
+      "name": "GAME_CLIENT_CHANGE_STAT",
+      "payload_hex": "08a880081205081d10b60a"
+    },
+    {
+      "opcode": 16002,
+      "name": "GAME_CLIENT_STRUCK",
+      "payload_hex": "080110959aef3a18ac96e704200228959aef3a320f0d678642c41567467b441d9029cfc440f0fd03580160049001affba6f69434"
+    },
+    {
+      "opcode": 5001,
+      "name": "GAME_CLIENT_CHATMSG",
+      "payload_hex": "0a1708959aef3a120018042028408bddd2d60660f20578f20512144d4952345f434150545552455f464958545552451803"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS8603;CS8618;CS8981</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Network/Packets/Messages.cs" Link="Messages.cs" />
+    <Compile Include="../../Network/Packets/Protobuf.cs" Link="Protobuf.cs" />
+    <Compile Include="../../Network/Packets/Opcodes.cs" Link="Opcodes.cs" />
+    <Compile Include="../../Utilities/enums.cs" Link="enums.cs" />
+    <Compile Include="../../Game/Stats.cs" Link="Stats.cs" />
+    <None Update="fixtures/current-server-packets.json" CopyToOutputDirectory="PreserveNewest" />
+    <Reference Include="protobuf-net">
+      <HintPath>../../packages/protobuf-net.3.2.30/lib/net6.0/protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net.Core">
+      <HintPath>../../packages/protobuf-net.Core.3.2.30/lib/net6.0/protobuf-net.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

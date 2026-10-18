@@ -1230,6 +1230,12 @@ namespace Mir4ClientEmulator.Network.Packets
                 }
             }
         }
+
+        public static void GAME_CLIENT_CHANGE_STAT(GameContext context, byte[] protobuf)
+        {
+            GAME_CLIENT_CHANGE_STAT msg = Protobuf.ProtoDeserialize<GAME_CLIENT_CHANGE_STAT>(protobuf);
+            context.Client.Bot.PlayerStats.ApplyChangeStat(msg);
+        }
      
         public static void CLIENT_GAME_CHARACTER_ACHIEVEMENT_CLEAR_REWARD(GameContext context, byte[] protobuf)
         {

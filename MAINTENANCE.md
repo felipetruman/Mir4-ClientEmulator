@@ -8,7 +8,7 @@ On Windows with the .NET 10 SDK and .NET Framework 4.7.2 runtime, run:
 ./build.ps1 -NativeCompiler C:/path/to/zig.exe
 ```
 
-The script restores NuGet packages, builds the WinForms application, builds `Mir4Encryption.dll`, and runs the transport and cipher regression suites. The native build requires `native/current-profile.json` and its generated `native/current_parameters.h`. These are intentionally excluded from Git because they are derived from the installed game client. Use `native/generate-parameters.py <verified-profile.json> <Mir4G.exe>` to generate them; the script checks the executable SHA-256 against the profile before writing build inputs. Do not claim a runnable native build from `-ManagedOnly`; that option skips DLL integration tests.
+The script restores NuGet packages, builds the WinForms application, builds `Mir4Encryption.dll`, and runs the transport, current-capture, and cipher regression suites. The capture suite replays sanitized server-to-client payloads for player state, combat stats, damage, and chat through the emulator's actual opcode and protobuf models. `GAME_CLIENT_CHANGE_STAT` now updates `PlayerStats.CombatPoint`. These checks do not establish client-to-server framing or decryption. The native build requires `native/current-profile.json` and its generated `native/current_parameters.h`. These are intentionally excluded from Git because they are derived from the installed game client. Use `native/generate-parameters.py <verified-profile.json> <Mir4G.exe>` to generate them; the script checks the executable SHA-256 against the profile before writing build inputs. Do not claim a runnable native build from `-ManagedOnly`; that option skips DLL integration tests.
 
 ## Current-client status
 
